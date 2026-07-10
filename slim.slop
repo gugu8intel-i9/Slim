@@ -1,0 +1,250 @@
+# Slim - A high-performance, lightweight terminal text editor
+# Written in Slop (https://github.com/gugu8intel-i9/Slop)
+#
+# Usage: slop slim.slop <file>
+# Controls:
+#   h j k l / arrows       Move cursor (normal mode)
+#   Home/End               Line start/end
+#   PgUp/PgDn              Scroll page
+#   i                        Enter insert mode (normal mode)
+#   Esc                      Return to normal mode
+#   Printable / Enter / BS   Insert text (insert mode)
+#   Ctrl+S                 Save
+#   Ctrl+Q                 Quit
+
+fn main(args: array[string]) {
+    let filename = ""
+    if length(args) > 1 {
+        filename = args[1]
+    }
+
+    let content = read_file(filename)
+    let lines = split(content, "\n")
+    let dirty = false
+
+    raw { "#include <termios.h>" }
+    raw { "#include <sys/ioctl.h>" }
+    raw { "#include <unistd.h>" }
+    raw { "#include <stdio.h>" }
+    raw { "#include <string.h>" }
+    raw { "#include <stdlib.h>" }
+    raw { "" }
+    raw { "struct termios orig_termios;" }
+    raw { "tcgetattr(STDIN_FILENO, &orig_termios);" }
+    raw { "struct termios raw = orig_termios;" }
+    raw { "raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);" }
+    raw { "raw.c_oflag &= ~(OPOST);" }
+    raw { "raw.c_cflag |= (CS8);" }
+    raw { "raw.c_lflag &= ~(ECHO | ICANON | ISIG | IEXTEN);" }
+    raw { "raw.c_cc[VMIN] = 0;" }
+    raw { "raw.c_cc[VTIME] = 1;" }
+    raw { "tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);" }
+    raw { "" }
+    raw { "struct winsize ws;" }
+    raw { "int screenrows = 24, screencols = 80;" }
+    raw { "if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == 0) { screenrows = ws.ws_row; screencols = ws.ws_col; }" }
+    raw { "if (screenrows < 3) screenrows = 3;" }
+    raw { "if (screencols < 10) screencols = 10;" }
+    raw { "" }
+    raw { "int cx = 0, cy = 0, rowoff = 0, coloff = 0, running = 1, mode = 1;" }
+    raw { "" }
+    raw { "// If split produced a trailing empty line because file ended with newline, drop it." }
+    raw { "if (lines.length > 0) {" }
+    raw { "    SlopString* last = (SlopString*)slop_array_get(lines, lines.length - 1);" }
+    raw { "    if (last->length == 0) lines.length--;" }
+    raw { "}" }
+    raw { "if (lines.length == 0) {" }
+    raw { "    SlopString* empty = (SlopString*)slop_arena_alloc(local_arena, sizeof(SlopString));" }
+    raw { "    empty->data = \"\";" }
+    raw { "    empty->length = 0;" }
+    raw { "    slop_array_push(local_arena, &lines, empty);" }
+    raw { "}" }
+    raw { "" }
+    raw { "while (running) {" }
+    raw { "    // hide cursor and home" }
+    raw { "    write(STDOUT_FILENO, \"\\x1b[?25l\", 6);" }
+    raw { "    write(STDOUT_FILENO, \"\\x1b[H\", 3);" }
+    raw { "" }
+    raw { "    int draw_rows = screenrows - 1;" }
+    raw { "    for (int y = 0; y < draw_rows; y++) {" }
+    raw { "        int filerow = y + rowoff;" }
+    raw { "        if (filerow >= (int)lines.length) {" }
+    raw { "            write(STDOUT_FILENO, \"~\", 1);" }
+    raw { "        } else {" }
+    raw { "            SlopString* line = (SlopString*)slop_array_get(lines, filerow);" }
+    raw { "            int start = coloff;" }
+    raw { "            int len = (int)line->length - start;" }
+    raw { "            if (len < 0) len = 0;" }
+    raw { "            if (len > screencols) len = screencols;" }
+    raw { "            if (len > 0) write(STDOUT_FILENO, line->data + start, len);" }
+    raw { "        }" }
+    raw { "        write(STDOUT_FILENO, \"\\x1b[K\", 3);" }
+    raw { "        if (y < draw_rows - 1) write(STDOUT_FILENO, \"\\r\\n\", 2);" }
+    raw { "    }" }
+    raw { "" }
+    raw { "    // status bar" }
+    raw { "    char status[256];" }
+    raw { "    const char* fname = filename.length ? filename.data : \"[No Name]\";" }
+    raw { "    int status_len = snprintf(status, sizeof(status)," }
+    raw { "        \" %s %.20s | %dL %s | %d:%d \"," }
+    raw { "        mode ? \"[INSERT]\" : \"[NORMAL]\", fname, (int)lines.length, dirty ? \"[+]\" : \"\"," }
+    raw { "        cy + 1, cx + 1);" }
+    raw { "    if (status_len < 0) status_len = 0;" }
+    raw { "    write(STDOUT_FILENO, \"\\r\\n\", 2);" }
+    raw { "    write(STDOUT_FILENO, status, status_len);" }
+    raw { "    write(STDOUT_FILENO, \"\\x1b[K\", 3);" }
+    raw { "" }
+    raw { "    // position cursor" }
+    raw { "    char buf[32];" }
+    raw { "    int cursor_y = cy - rowoff + 1;" }
+    raw { "    int cursor_x = cx - coloff + 1;" }
+    raw { "    int bl = snprintf(buf, sizeof(buf), \"\\x1b[%d;%dH\", cursor_y, cursor_x);" }
+    raw { "    write(STDOUT_FILENO, buf, bl);" }
+    raw { "    write(STDOUT_FILENO, \"\\x1b[?25h\", 6);" }
+    raw { "" }
+    raw { "    // read key" }
+    raw { "    char c;" }
+    raw { "    int n = read(STDIN_FILENO, &c, 1);" }
+    raw { "    if (n != 1) continue;" }
+    raw { "" }
+    raw { "    if (c == 17) { running = 0; continue; } // Ctrl+Q" }
+    raw { "    if (c == 19) { // Ctrl+S" }
+    raw { "        if (filename.length == 0) continue;" }
+    raw { "        FILE* f = fopen(filename.data, \"wb\");" }
+    raw { "        if (f) {" }
+    raw { "            for (int i = 0; i < (int)lines.length; i++) {" }
+    raw { "                SlopString* line = (SlopString*)slop_array_get(lines, i);" }
+    raw { "                fwrite(line->data, 1, line->length, f);" }
+    raw { "                if (i < (int)lines.length - 1) fwrite(\"\\n\", 1, 1, f);" }
+    raw { "            }" }
+    raw { "            fclose(f);" }
+    raw { "            dirty = 0;" }
+    raw { "        }" }
+    raw { "        continue;" }
+    raw { "    }" }
+    raw { "" }
+    raw { "    if (mode == 0) {" }
+    raw { "        if (c == 'i' || c == 'I') { mode = 1; continue; }" }
+    raw { "        if (c == 'h') { if (cx > 0) cx--; continue; }" }
+    raw { "        if (c == 'j') { if (cy < (int)lines.length - 1) cy++; continue; }" }
+    raw { "        if (c == 'k') { if (cy > 0) cy--; continue; }" }
+    raw { "        if (c == 'l') { cx++; continue; }" }
+    raw { "        if (c == '0') { cx = 0; continue; }" }
+    raw { "        if (c == '$') { if (cy < (int)lines.length) { SlopString* ln = (SlopString*)slop_array_get(lines, cy); cx = (int)ln->length; } continue; }" }
+    raw { "        continue;" }
+    raw { "    }" }
+    raw { "" }
+    raw { "    if (c == 27) {" }
+    raw { "        char seq[3];" }
+    raw { "        if (read(STDIN_FILENO, &seq[0], 1) != 1) { mode = 0; continue; }" }
+    raw { "        if (read(STDIN_FILENO, &seq[1], 1) != 1) { mode = 0; continue; }" }
+    raw { "        if (seq[0] == '[') {" }
+    raw { "            if (seq[1] == 'A') { if (cy > 0) cy--; }" }
+    raw { "            else if (seq[1] == 'B') { if (cy < (int)lines.length - 1) cy++; }" }
+    raw { "            else if (seq[1] == 'C') { cx++; }" }
+    raw { "            else if (seq[1] == 'D') { if (cx > 0) cx--; }" }
+    raw { "            else if (seq[1] == 'H') { cx = 0; }" }
+    raw { "            else if (seq[1] == 'F') { if (cy < (int)lines.length) { SlopString* ln = (SlopString*)slop_array_get(lines, cy); cx = (int)ln->length; } }" }
+    raw { "            else if (seq[1] == '5') { char tilde; read(STDIN_FILENO, &tilde, 1); cy -= (screenrows - 1); if (cy < 0) cy = 0; }" }
+    raw { "            else if (seq[1] == '6') { char tilde; read(STDIN_FILENO, &tilde, 1); cy += (screenrows - 1); if (cy >= (int)lines.length) cy = (int)lines.length - 1; }" }
+    raw { "            else { mode = 0; continue; }" }
+    raw { "        } else {" }
+    raw { "            mode = 0; continue;" }
+    raw { "        }" }
+    raw { "        continue;" }
+    raw { "    }" }
+    raw { "" }
+    raw { "    if (c == 127) {" }
+    raw { "        if (cx > 0 && cy < (int)lines.length) {" }
+    raw { "            SlopString* old = (SlopString*)slop_array_get(lines, cy);" }
+    raw { "            int new_len = (int)old->length - 1;" }
+    raw { "            char* nd = (char*)slop_arena_alloc(local_arena, new_len + 1);" }
+    raw { "            memcpy(nd, old->data, cx - 1);" }
+    raw { "            memcpy(nd + cx - 1, old->data + cx, old->length - cx);" }
+    raw { "            nd[new_len] = '\\0';" }
+    raw { "            old->data = nd;" }
+    raw { "            old->length = new_len;" }
+    raw { "            cx--;" }
+    raw { "            dirty = 1;" }
+    raw { "        } else if (cx == 0 && cy > 0) {" }
+    raw { "            SlopString* prev = (SlopString*)slop_array_get(lines, cy - 1);" }
+    raw { "            SlopString* cur = (SlopString*)slop_array_get(lines, cy);" }
+    raw { "            int prev_len = (int)prev->length;" }
+    raw { "            int new_len = prev_len + (int)cur->length;" }
+    raw { "            char* nd = (char*)slop_arena_alloc(local_arena, new_len + 1);" }
+    raw { "            memcpy(nd, prev->data, prev_len);" }
+    raw { "            memcpy(nd + prev_len, cur->data, cur->length);" }
+    raw { "            nd[new_len] = '\\0';" }
+    raw { "            prev->data = nd;" }
+    raw { "            prev->length = new_len;" }
+    raw { "            for (int i = cy; i < (int)lines.length - 1; i++) lines.data[i] = lines.data[i + 1];" }
+    raw { "            lines.length--;" }
+    raw { "            cy--;" }
+    raw { "            cx = prev_len;" }
+    raw { "            dirty = 1;" }
+    raw { "        }" }
+    raw { "    } else if (c == '\\r' || c == '\\n') {" }
+    raw { "        if (cy < (int)lines.length) {" }
+    raw { "            SlopString* old = (SlopString*)slop_array_get(lines, cy);" }
+    raw { "            int new_len = (int)old->length - cx;" }
+    raw { "            char* nd = (char*)slop_arena_alloc(local_arena, new_len + 1);" }
+    raw { "            memcpy(nd, old->data + cx, new_len);" }
+    raw { "            nd[new_len] = '\\0';" }
+    raw { "            SlopString* new_line = (SlopString*)slop_arena_alloc(local_arena, sizeof(SlopString));" }
+    raw { "            new_line->data = nd;" }
+    raw { "            new_line->length = new_len;" }
+    raw { "            old->length = cx;" }
+    raw { "" }
+    raw { "            if (lines.length >= lines.capacity) {" }
+    raw { "                size_t new_cap = lines.capacity ? lines.capacity * 2 : 8;" }
+    raw { "                void** new_data = (void**)slop_arena_alloc(local_arena, new_cap * sizeof(void*));" }
+    raw { "                memcpy(new_data, lines.data, lines.length * sizeof(void*));" }
+    raw { "                lines.data = new_data;" }
+    raw { "                lines.capacity = new_cap;" }
+    raw { "            }" }
+    raw { "            for (int i = (int)lines.length; i > cy + 1; i--) lines.data[i] = lines.data[i - 1];" }
+    raw { "            lines.data[cy + 1] = new_line;" }
+    raw { "            lines.length++;" }
+    raw { "            cy++;" }
+    raw { "            cx = 0;" }
+    raw { "            dirty = 1;" }
+    raw { "        }" }
+    raw { "    } else if (c >= 32 && c < 127) {" }
+    raw { "        if (cy < (int)lines.length) {" }
+    raw { "            SlopString* old = (SlopString*)slop_array_get(lines, cy);" }
+    raw { "            int new_len = (int)old->length + 1;" }
+    raw { "            char* nd = (char*)slop_arena_alloc(local_arena, new_len + 1);" }
+    raw { "            memcpy(nd, old->data, cx);" }
+    raw { "            nd[cx] = c;" }
+    raw { "            memcpy(nd + cx + 1, old->data + cx, old->length - cx);" }
+    raw { "            nd[new_len] = '\\0';" }
+    raw { "            old->data = nd;" }
+    raw { "            old->length = new_len;" }
+    raw { "            cx++;" }
+    raw { "            dirty = 1;" }
+    raw { "        }" }
+    raw { "    }" }
+    raw { "" }
+    raw { "    if (cy < 0) cy = 0;" }
+    raw { "    if (cy >= (int)lines.length) cy = (int)lines.length - 1;" }
+    raw { "    if (cx < 0) cx = 0;" }
+    raw { "    if (cy >= 0 && cy < (int)lines.length) {" }
+    raw { "        SlopString* ln = (SlopString*)slop_array_get(lines, cy);" }
+    raw { "        if (cx > (int)ln->length) cx = (int)ln->length;" }
+    raw { "    } else {" }
+    raw { "        cx = 0;" }
+    raw { "    }" }
+    raw { "" }
+    raw { "    if (cy < rowoff) rowoff = cy;" }
+    raw { "    if (cy >= rowoff + screenrows - 1) rowoff = cy - screenrows + 2;" }
+    raw { "    if (cx < coloff) coloff = cx;" }
+    raw { "    if (cx >= coloff + screencols) coloff = cx - screencols + 1;" }
+    raw { "}" }
+    raw { "" }
+    raw { "tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);" }
+    raw { "write(STDOUT_FILENO, \"\\x1b[2J\", 4);" }
+    raw { "write(STDOUT_FILENO, \"\\x1b[H\", 3);" }
+
+    # File is saved via Ctrl+S inside the editor loop.
+}
+
