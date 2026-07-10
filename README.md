@@ -14,7 +14,8 @@ Slim is a Vim-inspired modal editor that stays small, fast, and dependency-free
 curl -fsSL https://raw.githubusercontent.com/gugu8intel-i9/Slim/main/install.sh | bash
 ```
 
-This clones the repo to `~/.local/share/slim`, builds the native binary, and
+This clones Slim to `~/.local/share/slim`, clones the Slop runtime to
+`~/.local/share/slop` if it isn't already present, builds the native binary, and
 symlinks it to `~/.local/bin/slim`. Make sure `~/.local/bin` is in your `PATH`.
 
 ### Manual install
@@ -22,7 +23,7 @@ symlinks it to `~/.local/bin/slim`. Make sure `~/.local/bin` is in your `PATH`.
 ```bash
 git clone https://github.com/gugu8intel-i9/Slim.git
 cd Slim
-./build.sh
+./build.sh          # automatically clones Slop to ~/.local/share/slop if needed
 ./slim myfile.txt
 ```
 
@@ -37,8 +38,9 @@ cp slim ~/.local/bin/slim
 
 - Python 3
 - GCC or Clang
-- The Slop runtime headers (`slop_rt.h`). `build.sh` looks for them in
-  `/home/user/slop_repo` by default. Point to your clone with:
+- Git (to fetch the Slop runtime automatically)
+
+If you already have Slop cloned elsewhere, point `build.sh` at it:
 
 ```bash
 SLOP_REPO=/path/to/Slop ./build.sh
