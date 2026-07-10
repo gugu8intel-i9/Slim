@@ -1,0 +1,2 @@
+# Mark development artifacts so they don't dominate GitHub language stats
+generate_slim.py linguist-generated=true
