@@ -29,12 +29,19 @@ fi
 echo "[Slim] Transpiling slim.slop -> slim.c ..."
 python3 "$SLOP_BOOT" slim.slop slim.c
 
+# macOS needs _DARWIN_C_SOURCE so the Slop runtime can see snprintf,
+# _SC_NPROCESSORS_ONLN, and other platform symbols.
+EXTRA_CFLAGS=""
+if [ "$(uname -s)" = "Darwin" ]; then
+    EXTRA_CFLAGS="-D_DARWIN_C_SOURCE"
+fi
+
 echo "[Slim] Compiling slim.c -> slim ..."
 CC="${CC:-$(command -v gcc || command -v clang || true)}"
 if [ -z "$CC" ]; then
     echo "Error: No C compiler found. Install gcc or clang."
     exit 1
 fi
-$CC -O3 -ffast-math -flto -I"$SLOP_INCLUDE" slim.c -o slim -lm
+$CC -O3 -ffast-math -flto -std=gnu11 $EXTRA_CFLAGS -I"$SLOP_INCLUDE" slim.c -o slim -lm
 
 echo "[Slim] Build complete: ./slim <file>"
