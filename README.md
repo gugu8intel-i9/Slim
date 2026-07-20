@@ -3,8 +3,8 @@
 A high-performance, lightweight terminal text editor written in
 [Slop](https://github.com/gugu8intel-i9/Slop).
 
-Slim is a Vim-inspired modal editor that stays small, fast, and dependency-free
-(except for the Slop runtime and a C compiler).
+Slim is a Vim-inspired modal editor that stays small, fast, and dependency-free.
+It uses the official Slop compiler toolchain to transpile to native C.
 
 ## Install
 
@@ -14,20 +14,33 @@ Slim is a Vim-inspired modal editor that stays small, fast, and dependency-free
 curl -fsSL https://raw.githubusercontent.com/gugu8intel-i9/Slim/main/install.sh | bash
 ```
 
-This clones Slim to `~/.local/share/slim`, clones the Slop runtime to
-`~/.local/share/slop` if it isn't already present, builds the native binary, and
-symlinks it to `~/.local/bin/slim`. Make sure `~/.local/bin` is in your `PATH`.
+This will:
+
+1. Install the Slop compiler toolchain into `~/.slop` (if it isn't already there).
+2. Clone Slim to `~/.local/share/slim`.
+3. Build the native `slim` binary.
+4. Symlink it to `~/.local/bin/slim`.
+
+Make sure `~/.local/bin` is in your `PATH`, then run:
+
+```bash
+slim myfile.txt
+```
 
 ### Manual install
 
 ```bash
+# 1. Install Slop
+curl -fsSL https://raw.githubusercontent.com/gugu8intel-i9/Slop/main/install.sh | bash
+
+# 2. Clone and build Slim
 git clone https://github.com/gugu8intel-i9/Slim.git
 cd Slim
-./build.sh          # automatically clones Slop to ~/.local/share/slop if needed
+./build.sh
 ./slim myfile.txt
 ```
 
-To install manually into `~/.local/bin`:
+To install the binary into `~/.local/bin` manually:
 
 ```bash
 mkdir -p ~/.local/bin
@@ -36,14 +49,15 @@ cp slim ~/.local/bin/slim
 
 ### Build requirements
 
-- Python 3
+- Python 3 (only used by the Slop bootstrap fallback; prebuilt Linux x86_64
+  binaries are preferred)
 - GCC or Clang
-- Git (to fetch the Slop runtime automatically)
+- Git
 
-If you already have Slop cloned elsewhere, point `build.sh` at it:
+If you installed Slop somewhere other than `~/.slop`, point `build.sh` at it:
 
 ```bash
-SLOP_REPO=/path/to/Slop ./build.sh
+SLOP_BIN=/path/to/slop/bin SLOP_INCLUDE=/path/to/slop/include ./build.sh
 ```
 
 ## Usage
@@ -76,9 +90,9 @@ Slim starts in **insert mode** so you can type immediately.
 
 ## Performance
 
-Slim is designed for speed. Because it transpiles to native C, uses Slop's
-arena memory model, and has no plugin system or heavy runtime, it starts and
-quits faster than full-featured editors.
+Slim is designed for speed. Because it transpiles to native C through the Slop
+compiler, uses Slop's arena memory model, and has no plugin system or heavy
+runtime, it starts and quits faster than full-featured editors.
 
 ### Benchmark: startup + quit on a 1000-line file
 
@@ -88,11 +102,11 @@ Debian packages. Each editor was started with a minimal configuration, opened a
 
 | Editor | Average | Median | Min | Max |
 |--------|---------|--------|-----|-----|
-| **Slim** | **1.63 ms** | **1.64 ms** | **1.46 ms** | **1.80 ms** |
-| Vim (`vim -u NONE -es -c q`) | 2.61 ms | 2.58 ms | 2.42 ms | 2.88 ms |
-| Neovim (`nvim -u NONE --headless -c q`) | 7.74 ms | 7.57 ms | 7.34 ms | 9.36 ms |
+| **Slim** | **1.52 ms** | **1.49 ms** | **1.45 ms** | **1.70 ms** |
+| Vim (`vim -u NONE -es -c q`) | 2.75 ms | 2.68 ms | 2.48 ms | 3.10 ms |
+| Neovim (`nvim -u NONE --headless -c q`) | 8.40 ms | 8.31 ms | 7.76 ms | 9.34 ms |
 
-**Result:** Slim starts ~1.6× faster than Vim and ~4.7× faster than Neovim in
+**Result:** Slim starts ~1.8× faster than Vim and ~5.5× faster than Neovim in
 this minimal startup test.
 
 ### Why Slim is fast
@@ -114,14 +128,16 @@ python3 benchmark.py
 
 ## Why Slim?
 
-- **High performance**: transpiles to native C and uses Slop's arena memory model.
+- **High performance**: transpiles to native C through the Slop compiler and uses
+  Slop's arena memory model.
 - **Lightweight**: a single `.slop` source file, no external UI libraries.
 - **Vim-like**: modal editing with `hjkl` navigation.
 
 ## Files
 
 - `slim.slop` — the editor source code written in Slop.
-- `build.sh` — compiles `slim.slop` into a native executable.
+- `build.sh` — compiles `slim.slop` into a native executable using the Slop
+  toolchain.
 - `install.sh` — one-line installer script.
 - `benchmark.py` — reproduces the performance comparison.
 - `generate_slim.py` — helper script used to produce `slim.slop` from the
