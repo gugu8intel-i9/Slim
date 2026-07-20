@@ -16,9 +16,9 @@ curl -fsSL https://raw.githubusercontent.com/gugu8intel-i9/Slim/main/install.sh 
 
 This will:
 
-1. Install or update the Slop compiler toolchain into `~/.slop`.
+1. Clone/update the Slop runtime into `~/.local/share/slop`.
 2. Clone Slim to `~/.local/share/slim`.
-3. Build the native `slim` binary.
+3. Build the native `slim` binary using Slop's portable Python bootstrap transpiler.
 4. Symlink it to `~/.local/bin/slim`.
 
 Make sure `~/.local/bin` is in your `PATH`, then run:
@@ -30,8 +30,8 @@ slim myfile.txt
 ### Manual install
 
 ```bash
-# 1. Install Slop
-curl -fsSL https://raw.githubusercontent.com/gugu8intel-i9/Slop/main/install.sh | bash
+# 1. Clone Slop
+git clone https://github.com/gugu8intel-i9/Slop.git ~/.local/share/slop
 
 # 2. Clone and build Slim
 git clone https://github.com/gugu8intel-i9/Slim.git
@@ -49,15 +49,14 @@ cp slim ~/.local/bin/slim
 
 ### Build requirements
 
-- Python 3 (only used by the Slop bootstrap fallback; prebuilt Linux x86_64
-  binaries are preferred)
+- Python 3
 - GCC or Clang
 - Git
 
-If you installed Slop somewhere other than `~/.slop`, point `build.sh` at it:
+If you cloned Slop somewhere other than `~/.local/share/slop`, point `build.sh` at it:
 
 ```bash
-SLOP_BIN=/path/to/slop/bin SLOP_INCLUDE=/path/to/slop/include ./build.sh
+SLOP_REPO=/path/to/Slop ./build.sh
 ```
 
 ## Usage

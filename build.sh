@@ -2,23 +2,34 @@
 set -e
 
 # Build script for Slim - a high-performance terminal editor written in Slop.
-# Uses the official Slop compiler toolchain.
+# Uses the Python bootstrap transpiler (slop_boot.py) from the Slop repo.
+# This is more portable than the native slop-compiler and works on macOS
+# where the native ELF backend may not build.
 
-SLOP_BIN="${SLOP_BIN:-$HOME/.slop/bin}"
-SLOP_INCLUDE="${SLOP_INCLUDE:-$HOME/.slop/include}"
-SLOP_COMPILER="$SLOP_BIN/slop-compiler"
+SLOP_REPO_URL="https://github.com/gugu8intel-i9/Slop.git"
+SLOP_REPO="${SLOP_REPO:-$HOME/.local/share/slop}"
+SLOP_BOOT="$SLOP_REPO/slop_boot.py"
+SLOP_INCLUDE="$SLOP_REPO"
 
-if [ ! -f "$SLOP_COMPILER" ]; then
-    echo "Error: Slop compiler not found at $SLOP_COMPILER"
-    echo "Install Slop first:"
-    echo "  curl -fsSL https://raw.githubusercontent.com/gugu8intel-i9/Slop/main/install.sh | bash"
+# Clone or update Slop if we don't have the bootstrap transpiler.
+if [ ! -f "$SLOP_BOOT" ]; then
+    if [ -d "$SLOP_REPO/.git" ]; then
+        echo "[Slim] Updating Slop runtime at $SLOP_REPO ..."
+        git -C "$SLOP_REPO" pull
+    else
+        echo "[Slim] Slop runtime not found; cloning into $SLOP_REPO ..."
+        mkdir -p "$SLOP_REPO"
+        git clone "$SLOP_REPO_URL" "$SLOP_REPO"
+    fi
+fi
+
+if [ ! -f "$SLOP_BOOT" ]; then
+    echo "Error: Slop bootstrap transpiler not found at $SLOP_BOOT"
     exit 1
 fi
 
 if [ ! -f "$SLOP_INCLUDE/slop_rt.h" ]; then
     echo "Error: Slop runtime headers not found at $SLOP_INCLUDE/slop_rt.h"
-    echo "Install Slop first:"
-    echo "  curl -fsSL https://raw.githubusercontent.com/gugu8intel-i9/Slop/main/install.sh | bash"
     exit 1
 fi
 
@@ -32,12 +43,10 @@ fi
 rm -f slim.c slim
 
 echo "[Slim] Transpiling slim.slop -> slim.c ..."
-"$SLOP_COMPILER" slim.slop slim.c
+python3 "$SLOP_BOOT" slim.slop slim.c
 
 if [ ! -f "slim.c" ]; then
-    echo "Error: slop-compiler did not produce slim.c"
-    echo "Try updating Slop:"
-    echo "  curl -fsSL https://raw.githubusercontent.com/gugu8intel-i9/Slop/main/install.sh | bash"
+    echo "Error: slop_boot.py did not produce slim.c"
     exit 1
 fi
 
