@@ -8,6 +8,8 @@
 #   PgUp/PgDn              Scroll page
 #   i                        Enter insert mode (normal mode)
 #   Esc                      Return to normal mode
+#   s                        Save file (normal mode)
+#   q                        Quit (normal mode)
 #   Printable / Enter / BS   Insert text (insert mode)
 #   Ctrl+S                 Save
 #   Ctrl+Q                 Quit
@@ -131,6 +133,21 @@ fn main(args: array[string]) {
     raw { "        if (c == 'l') { cx++; continue; }" }
     raw { "        if (c == '0') { cx = 0; continue; }" }
     raw { "        if (c == '$') { if (cy < (int)lines.length) { SlopString* ln = (SlopString*)slop_array_get(lines, cy); cx = (int)ln->length; } continue; }" }
+    raw { "        if (c == 'q' || c == 'Q') { running = 0; continue; }" }
+    raw { "        if (c == 's' || c == 'S') {" }
+    raw { "            if (filename.length == 0) continue;" }
+    raw { "            FILE* f = fopen(filename.data, \"wb\");" }
+    raw { "            if (f) {" }
+    raw { "                for (int i = 0; i < (int)lines.length; i++) {" }
+    raw { "                    SlopString* line = (SlopString*)slop_array_get(lines, i);" }
+    raw { "                    fwrite(line->data, 1, line->length, f);" }
+    raw { "                    if (i < (int)lines.length - 1) fwrite(\"\\n\", 1, 1, f);" }
+    raw { "                }" }
+    raw { "                fclose(f);" }
+    raw { "                dirty = 0;" }
+    raw { "            }" }
+    raw { "            continue;" }
+    raw { "        }" }
     raw { "        continue;" }
     raw { "    }" }
     raw { "" }

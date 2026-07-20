@@ -84,6 +84,8 @@ Slim starts in **insert mode** so you can type immediately.
 | printable chars | Insert text (insert mode) |
 | `Enter` | Insert new line (insert mode) |
 | `Backspace` | Delete character before cursor (insert mode) |
+| `s` | Save file (normal mode) |
+| `q` | Quit (normal mode) |
 | `Ctrl+S` | Save file |
 | `Ctrl+Q` | Quit |
 
