@@ -5,7 +5,9 @@ SLIM_REPO="https://github.com/gugu8intel-i9/Slim.git"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/share/slim}"
 BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 
-# Always install/update the Slop toolchain to the latest version.
+# Always install/update the Slop compiler toolchain to the latest version.
+# We do not skip this step even if an old slop-compiler exists, because old
+# versions may be incompatible with the current Slim source.
 echo "[Slim] Installing/updating Slop ..."
 curl -fsSL https://raw.githubusercontent.com/gugu8intel-i9/Slop/main/install.sh | bash
 
