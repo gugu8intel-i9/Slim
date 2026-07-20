@@ -16,7 +16,7 @@ curl -fsSL https://raw.githubusercontent.com/gugu8intel-i9/Slim/main/install.sh 
 
 This will:
 
-1. Install the Slop compiler toolchain into `~/.slop` (if it isn't already there).
+1. Install or update the Slop compiler toolchain into `~/.slop`.
 2. Clone Slim to `~/.local/share/slim`.
 3. Build the native `slim` binary.
 4. Symlink it to `~/.local/bin/slim`.
