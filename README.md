@@ -89,7 +89,26 @@ Slim starts in **insert mode** so you can type immediately.
 | `Ctrl+S` | Save file |
 | `Ctrl+Q` | Quit |
 
-## Performance
+## Syntax highlighting
+
+Slim includes a lightweight built-in highlighter for common file types:
+
+- **C / C++ / Slop / Rust / Go / JavaScript / TypeScript / Java** (`.c`, `.h`, `.cpp`, `.slop`, `.rs`, `.go`, `.js`, `.ts`, `.java`)
+- **Python** (`.py`)
+- **Shell** (`.sh`, `.bash`, `.zsh`)
+
+Highlighted tokens:
+
+| Token | Color |
+|-------|-------|
+| Keywords | magenta |
+| Types | blue |
+| Strings | green |
+| Comments | gray |
+| Numbers | yellow |
+| Preprocessor | cyan |
+
+Files with unrecognized extensions are rendered in the default terminal color.
 
 Slim is designed for speed. Because it transpiles to native C through the Slop
 compiler, uses Slop's arena memory model, and has no plugin system or heavy
@@ -117,8 +136,7 @@ this minimal startup test.
 - **No garbage collector**: Slop uses arena allocation, so there are no GC
   pauses.
 - **Tiny footprint**: the stripped binary is under 20 KB.
-- **Minimal code path**: no config files, plugins, syntax highlighting, or LSP
-  overhead at startup.
+- **Minimal code path**: no config files, plugins, or LSP overhead at startup.
 
 ### Reproduce the benchmark
 
