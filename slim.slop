@@ -63,6 +63,7 @@ fn main(args: array[string]) {
     raw { "    slop_array_push(local_arena, &lines, empty);" }
     raw { "}" }
     raw { "slop_hl_lang = slop_hl_detect_lang(filename);" }
+    raw { "SlopHlDiag diag = slop_hl_diagnostics(lines, slop_hl_lang);" }
     raw { "" }
     raw { "while (running) {" }
     raw { "    // hide cursor and home" }
@@ -89,9 +90,13 @@ fn main(args: array[string]) {
     raw { "    // status bar" }
     raw { "    char status[256];" }
     raw { "    const char* fname = filename.length ? filename.data : \"[No Name]\";" }
+    raw { "    char diag_str[32] = \"\";" }
+    raw { "    if (diag.errors > 0 || diag.warnings > 0) {" }
+    raw { "        snprintf(diag_str, sizeof(diag_str), \" [E:%d W:%d]\", diag.errors, diag.warnings);" }
+    raw { "    }" }
     raw { "    int status_len = snprintf(status, sizeof(status)," }
-    raw { "        \" %s %.20s | %dL %s | %d:%d \"," }
-    raw { "        mode ? \"[INSERT]\" : \"[NORMAL]\", fname, (int)lines.length, dirty ? \"[+]\" : \"\"," }
+    raw { "        \" %s %.20s | %dL%s%s | %d:%d \"," }
+    raw { "        mode ? \"[INSERT]\" : \"[NORMAL]\", fname, (int)lines.length, dirty ? \" [+]\" : \"\", diag_str," }
     raw { "        cy + 1, cx + 1);" }
     raw { "    if (status_len < 0) status_len = 0;" }
     raw { "    write(STDOUT_FILENO, \"\\r\\n\", 2);" }
@@ -123,6 +128,7 @@ fn main(args: array[string]) {
     raw { "            }" }
     raw { "            fclose(f);" }
     raw { "            dirty = 0;" }
+    raw { "            diag = slop_hl_diagnostics(lines, slop_hl_lang);" }
     raw { "        }" }
     raw { "        continue;" }
     raw { "    }" }
@@ -147,6 +153,7 @@ fn main(args: array[string]) {
     raw { "                }" }
     raw { "                fclose(f);" }
     raw { "                dirty = 0;" }
+    raw { "                diag = slop_hl_diagnostics(lines, slop_hl_lang);" }
     raw { "            }" }
     raw { "            continue;" }
     raw { "        }" }
@@ -258,6 +265,9 @@ fn main(args: array[string]) {
     raw { "    if (cy >= rowoff + screenrows - 1) rowoff = cy - screenrows + 2;" }
     raw { "    if (cx < coloff) coloff = cx;" }
     raw { "    if (cx >= coloff + screencols) coloff = cx - screencols + 1;" }
+    raw { "" }
+    raw { "    // Recompute diagnostics after edits." }
+    raw { "    if (dirty) diag = slop_hl_diagnostics(lines, slop_hl_lang);" }
     raw { "}" }
     raw { "" }
     raw { "tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);" }

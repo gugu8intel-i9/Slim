@@ -110,6 +110,36 @@ Highlighted tokens:
 
 Files with unrecognized extensions are rendered in the default terminal color.
 
+### Supported languages
+
+Slim recognizes and highlights **30+ language families**:
+
+- **C-like**: C, C++, Slop, Rust, Go, JavaScript, TypeScript, Java, PHP, Swift, Kotlin, C#
+- **Scripting**: Python, Shell, Ruby, Perl, Lua
+- **Web**: HTML, XML, CSS, JSON
+- **Data/config**: YAML, TOML, INI
+- **Systems**: SQL, Makefile, Dockerfile, Assembly
+- **Functional**: Lisp/Clojure/Scheme/Racket, Haskell, Erlang
+- **Docs**: Markdown
+
+For every supported language Slim highlights keywords, types, strings, numbers,
+comments, and preprocessor directives where applicable.
+
+### Diagnostics
+
+Slim continuously checks the file for basic problems and shows the count in the
+status bar, e.g. `[E:2 W:1]`.
+
+Detected issues:
+
+| Severity | Issue |
+|----------|-------|
+| Error | Unmatched `(`, `[`, or `{` |
+| Error | Unclosed string or multi-line comment |
+| Warning | Trailing whitespace |
+
+## Performance
+
 Slim is designed for speed. Because it transpiles to native C through the Slop
 compiler, uses Slop's arena memory model, and has no plugin system or heavy
 runtime, it starts and quits faster than full-featured editors.
@@ -155,12 +185,14 @@ python3 benchmark.py
 ## Files
 
 - `slim.slop` — the editor source code written in Slop.
-- `build.sh` — compiles `slim.slop` into a native executable using the Slop
-  toolchain.
+- `slim_hl.c` / `slim_hl.h` — syntax highlighting engine (compiled separately
+  for portability).
+- `build.sh` — compiles `slim.slop` + `slim_hl.c` into a native executable.
 - `install.sh` — one-line installer script.
 - `benchmark.py` — reproduces the performance comparison.
-- `generate_slim.py` — helper script used to produce `slim.slop` from the
-  embedded C editor core (development artifact).
+- `generate_slim.py` — helper script used to produce `slim.slop`.
+- `generate_slim_hl.py` — regenerates `slim_hl.c` / `slim_hl.h` from language
+  definitions.
 
 ## License
 
