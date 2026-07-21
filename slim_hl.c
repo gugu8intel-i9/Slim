@@ -4,20 +4,20 @@
 #include <unistd.h>
 #include <ctype.h>
 
-// VS Code Dark+ inspired truecolor palette.
-#define HL_DEFAULT   "\x1b[38;2;212;212;212m"
-#define HL_KEYWORD   "\x1b[38;2;86;156;214m"
-#define HL_TYPE      "\x1b[38;2;78;201;176m"
-#define HL_FUNCTION  "\x1b[38;2;220;220;170m"
-#define HL_STRING    "\x1b[38;2;206;145;120m"
-#define HL_COMMENT   "\x1b[38;2;106;153;85m"
-#define HL_NUMBER    "\x1b[38;2;181;206;168m"
-#define HL_OPERATOR  "\x1b[38;2;212;212;212m"
-#define HL_PREPROC   "\x1b[38;2;197;134;192m"
-#define HL_ATTRIBUTE "\x1b[38;2;255;215;0m"
-#define HL_REGEX     "\x1b[38;2;209;105;105m"
-#define HL_ESCAPE    "\x1b[38;2;215;186;125m"
-#define HL_VARIABLE  "\x1b[38;2;156;220;254m"
+// VS Code Dark+ inspired 256-color palette for broad terminal support.
+#define HL_DEFAULT   "\x1b[38;5;188m"
+#define HL_KEYWORD   "\x1b[38;5;74m"
+#define HL_TYPE      "\x1b[38;5;79m"
+#define HL_FUNCTION  "\x1b[38;5;187m"
+#define HL_STRING    "\x1b[38;5;173m"
+#define HL_COMMENT   "\x1b[38;5;65m"
+#define HL_NUMBER    "\x1b[38;5;151m"
+#define HL_OPERATOR  "\x1b[38;5;188m"
+#define HL_PREPROC   "\x1b[38;5;176m"
+#define HL_ATTRIBUTE "\x1b[38;5;220m"
+#define HL_REGEX     "\x1b[38;5;167m"
+#define HL_ESCAPE    "\x1b[38;5;180m"
+#define HL_VARIABLE  "\x1b[38;5;117m"
 #define HL_RESET     "\x1b[0m"
 
 typedef enum {
@@ -110,6 +110,8 @@ static SlopKwEntry c_keywords[] = {
     { "for", 3, HL_STYLE_KEYWORD },
     { "int", 3, HL_STYLE_KEYWORD },
     { "int", 3, HL_STYLE_TYPE },
+    { "FILE", 4, HL_STYLE_TYPE },
+    { "NULL", 4, HL_STYLE_KEYWORD },
     { "auto", 4, HL_STYLE_KEYWORD },
     { "bool", 4, HL_STYLE_KEYWORD },
     { "bool", 4, HL_STYLE_TYPE },
@@ -119,12 +121,10 @@ static SlopKwEntry c_keywords[] = {
     { "elif", 4, HL_STYLE_KEYWORD },
     { "else", 4, HL_STYLE_KEYWORD },
     { "enum", 4, HL_STYLE_KEYWORD },
-    { "FILE", 4, HL_STYLE_TYPE },
     { "goto", 4, HL_STYLE_KEYWORD },
     { "line", 4, HL_STYLE_KEYWORD },
     { "long", 4, HL_STYLE_KEYWORD },
     { "long", 4, HL_STYLE_TYPE },
-    { "NULL", 4, HL_STYLE_KEYWORD },
     { "true", 4, HL_STYLE_KEYWORD },
     { "void", 4, HL_STYLE_KEYWORD },
     { "void", 4, HL_STYLE_TYPE },
@@ -187,13 +187,13 @@ static SlopKwEntry c_keywords[] = {
     { "uint64_t", 8, HL_STYLE_TYPE },
     { "unsigned", 8, HL_STYLE_KEYWORD },
     { "volatile", 8, HL_STYLE_KEYWORD },
-    { "_Noreturn", 9, HL_STYLE_KEYWORD },
-    { "imaginary", 9, HL_STYLE_KEYWORD },
     { "SlopArena", 9, HL_STYLE_TYPE },
     { "SlopArray", 9, HL_STYLE_TYPE },
-    { "_Imaginary", 10, HL_STYLE_KEYWORD },
+    { "_Noreturn", 9, HL_STYLE_KEYWORD },
+    { "imaginary", 9, HL_STYLE_KEYWORD },
     { "SlopString", 10, HL_STYLE_TYPE },
     { "SlopTensor", 10, HL_STYLE_TYPE },
+    { "_Imaginary", 10, HL_STYLE_KEYWORD },
     { "thread_local", 12, HL_STYLE_KEYWORD },
     { "_Thread_local", 13, HL_STYLE_KEYWORD },
     { "static_assert", 13, HL_STYLE_KEYWORD },
@@ -212,6 +212,8 @@ static SlopKwEntry cpp_keywords[] = {
     { "new", 3, HL_STYLE_KEYWORD },
     { "set", 3, HL_STYLE_TYPE },
     { "try", 3, HL_STYLE_KEYWORD },
+    { "FILE", 4, HL_STYLE_TYPE },
+    { "NULL", 4, HL_STYLE_KEYWORD },
     { "auto", 4, HL_STYLE_KEYWORD },
     { "bool", 4, HL_STYLE_TYPE },
     { "case", 4, HL_STYLE_KEYWORD },
@@ -220,12 +222,10 @@ static SlopKwEntry cpp_keywords[] = {
     { "elif", 4, HL_STYLE_KEYWORD },
     { "else", 4, HL_STYLE_KEYWORD },
     { "enum", 4, HL_STYLE_KEYWORD },
-    { "FILE", 4, HL_STYLE_TYPE },
     { "goto", 4, HL_STYLE_KEYWORD },
     { "line", 4, HL_STYLE_KEYWORD },
     { "long", 4, HL_STYLE_KEYWORD },
     { "long", 4, HL_STYLE_TYPE },
-    { "NULL", 4, HL_STYLE_KEYWORD },
     { "this", 4, HL_STYLE_KEYWORD },
     { "true", 4, HL_STYLE_KEYWORD },
     { "void", 4, HL_STYLE_KEYWORD },
@@ -319,15 +319,16 @@ static SlopKwEntry cpp_keywords[] = {
 static int cpp_kw_count = 113;
 
 static SlopKwEntry rust_keywords[] = {
+    { "Rc", 2, HL_STYLE_TYPE },
     { "as", 2, HL_STYLE_KEYWORD },
     { "fn", 2, HL_STYLE_KEYWORD },
     { "i8", 2, HL_STYLE_TYPE },
     { "if", 2, HL_STYLE_KEYWORD },
     { "in", 2, HL_STYLE_KEYWORD },
-    { "Rc", 2, HL_STYLE_TYPE },
     { "u8", 2, HL_STYLE_TYPE },
     { "Arc", 3, HL_STYLE_TYPE },
     { "Box", 3, HL_STYLE_TYPE },
+    { "Vec", 3, HL_STYLE_TYPE },
     { "dyn", 3, HL_STYLE_KEYWORD },
     { "f32", 3, HL_STYLE_TYPE },
     { "f64", 3, HL_STYLE_TYPE },
@@ -345,7 +346,7 @@ static SlopKwEntry rust_keywords[] = {
     { "u32", 3, HL_STYLE_TYPE },
     { "u64", 3, HL_STYLE_TYPE },
     { "use", 3, HL_STYLE_KEYWORD },
-    { "Vec", 3, HL_STYLE_TYPE },
+    { "Self", 4, HL_STYLE_KEYWORD },
     { "bool", 4, HL_STYLE_TYPE },
     { "char", 4, HL_STYLE_TYPE },
     { "else", 4, HL_STYLE_KEYWORD },
@@ -355,7 +356,6 @@ static SlopKwEntry rust_keywords[] = {
     { "loop", 4, HL_STYLE_KEYWORD },
     { "move", 4, HL_STYLE_KEYWORD },
     { "self", 4, HL_STYLE_KEYWORD },
-    { "Self", 4, HL_STYLE_KEYWORD },
     { "true", 4, HL_STYLE_KEYWORD },
     { "type", 4, HL_STYLE_KEYWORD },
     { "u128", 4, HL_STYLE_TYPE },
@@ -373,12 +373,12 @@ static SlopKwEntry rust_keywords[] = {
     { "usize", 5, HL_STYLE_TYPE },
     { "where", 5, HL_STYLE_KEYWORD },
     { "while", 5, HL_STYLE_KEYWORD },
-    { "extern", 6, HL_STYLE_KEYWORD },
     { "Option", 6, HL_STYLE_TYPE },
     { "Result", 6, HL_STYLE_TYPE },
+    { "String", 6, HL_STYLE_TYPE },
+    { "extern", 6, HL_STYLE_KEYWORD },
     { "return", 6, HL_STYLE_KEYWORD },
     { "static", 6, HL_STYLE_KEYWORD },
-    { "String", 6, HL_STYLE_TYPE },
     { "struct", 6, HL_STYLE_KEYWORD },
     { "unsafe", 6, HL_STYLE_KEYWORD },
     { "continue", 8, HL_STYLE_KEYWORD },
@@ -439,9 +439,9 @@ static SlopKwEntry javascript_keywords[] = {
     { "do", 2, HL_STYLE_KEYWORD },
     { "if", 2, HL_STYLE_KEYWORD },
     { "in", 2, HL_STYLE_KEYWORD },
+    { "NaN", 3, HL_STYLE_KEYWORD },
     { "for", 3, HL_STYLE_KEYWORD },
     { "let", 3, HL_STYLE_KEYWORD },
-    { "NaN", 3, HL_STYLE_KEYWORD },
     { "new", 3, HL_STYLE_KEYWORD },
     { "try", 3, HL_STYLE_KEYWORD },
     { "var", 3, HL_STYLE_KEYWORD },
@@ -472,10 +472,10 @@ static SlopKwEntry javascript_keywords[] = {
     { "default", 7, HL_STYLE_KEYWORD },
     { "extends", 7, HL_STYLE_KEYWORD },
     { "finally", 7, HL_STYLE_KEYWORD },
+    { "Infinity", 8, HL_STYLE_KEYWORD },
     { "continue", 8, HL_STYLE_KEYWORD },
     { "debugger", 8, HL_STYLE_KEYWORD },
     { "function", 8, HL_STYLE_KEYWORD },
-    { "Infinity", 8, HL_STYLE_KEYWORD },
     { "undefined", 9, HL_STYLE_KEYWORD },
     { "instanceof", 10, HL_STYLE_KEYWORD },
 };
@@ -486,11 +486,11 @@ static SlopKwEntry typescript_keywords[] = {
     { "do", 2, HL_STYLE_KEYWORD },
     { "if", 2, HL_STYLE_KEYWORD },
     { "in", 2, HL_STYLE_KEYWORD },
+    { "NaN", 3, HL_STYLE_KEYWORD },
     { "any", 3, HL_STYLE_KEYWORD },
     { "for", 3, HL_STYLE_KEYWORD },
     { "get", 3, HL_STYLE_KEYWORD },
     { "let", 3, HL_STYLE_KEYWORD },
-    { "NaN", 3, HL_STYLE_KEYWORD },
     { "new", 3, HL_STYLE_KEYWORD },
     { "set", 3, HL_STYLE_KEYWORD },
     { "try", 3, HL_STYLE_KEYWORD },
@@ -532,11 +532,11 @@ static SlopKwEntry typescript_keywords[] = {
     { "finally", 7, HL_STYLE_KEYWORD },
     { "private", 7, HL_STYLE_KEYWORD },
     { "unknown", 7, HL_STYLE_KEYWORD },
+    { "Infinity", 8, HL_STYLE_KEYWORD },
     { "abstract", 8, HL_STYLE_KEYWORD },
     { "continue", 8, HL_STYLE_KEYWORD },
     { "debugger", 8, HL_STYLE_KEYWORD },
     { "function", 8, HL_STYLE_KEYWORD },
-    { "Infinity", 8, HL_STYLE_KEYWORD },
     { "readonly", 8, HL_STYLE_KEYWORD },
     { "interface", 9, HL_STYLE_KEYWORD },
     { "namespace", 9, HL_STYLE_KEYWORD },
@@ -618,19 +618,19 @@ static SlopKwEntry python_keywords[] = {
     { "for", 3, HL_STYLE_KEYWORD },
     { "not", 3, HL_STYLE_KEYWORD },
     { "try", 3, HL_STYLE_KEYWORD },
+    { "None", 4, HL_STYLE_KEYWORD },
+    { "True", 4, HL_STYLE_KEYWORD },
     { "elif", 4, HL_STYLE_KEYWORD },
     { "else", 4, HL_STYLE_KEYWORD },
     { "from", 4, HL_STYLE_KEYWORD },
-    { "None", 4, HL_STYLE_KEYWORD },
     { "pass", 4, HL_STYLE_KEYWORD },
     { "self", 4, HL_STYLE_KEYWORD },
-    { "True", 4, HL_STYLE_KEYWORD },
     { "with", 4, HL_STYLE_KEYWORD },
+    { "False", 5, HL_STYLE_KEYWORD },
     { "async", 5, HL_STYLE_KEYWORD },
     { "await", 5, HL_STYLE_KEYWORD },
     { "break", 5, HL_STYLE_KEYWORD },
     { "class", 5, HL_STYLE_KEYWORD },
-    { "False", 5, HL_STYLE_KEYWORD },
     { "print", 5, HL_STYLE_KEYWORD },
     { "raise", 5, HL_STYLE_KEYWORD },
     { "while", 5, HL_STYLE_KEYWORD },
@@ -1222,6 +1222,7 @@ static SlopKwEntry swift_keywords[] = {
     { "nil", 3, HL_STYLE_KEYWORD },
     { "try", 3, HL_STYLE_KEYWORD },
     { "var", 3, HL_STYLE_KEYWORD },
+    { "Self", 4, HL_STYLE_KEYWORD },
     { "case", 4, HL_STYLE_KEYWORD },
     { "else", 4, HL_STYLE_KEYWORD },
     { "enum", 4, HL_STYLE_KEYWORD },
@@ -1229,7 +1230,6 @@ static SlopKwEntry swift_keywords[] = {
     { "init", 4, HL_STYLE_KEYWORD },
     { "open", 4, HL_STYLE_KEYWORD },
     { "self", 4, HL_STYLE_KEYWORD },
-    { "Self", 4, HL_STYLE_KEYWORD },
     { "true", 4, HL_STYLE_KEYWORD },
     { "break", 5, HL_STYLE_KEYWORD },
     { "catch", 5, HL_STYLE_KEYWORD },
@@ -1749,8 +1749,11 @@ static int slop_hl_kw_cmp(const void* a, const void* b) {
 
 static const SlopKwEntry* slop_hl_find_kw(const SlopKwEntry* table, int count, const char* w, int len) {
     if (!table || count <= 0) return NULL;
-    SlopKwEntry key = { w, len, HL_STYLE_DEFAULT };
-    return (const SlopKwEntry*)bsearch(&key, table, count, sizeof(SlopKwEntry), slop_hl_kw_cmp);
+    // Linear search: tables are small and this avoids any subtle bsearch/sort mismatch issues.
+    for (int i = 0; i < count; i++) {
+        if (table[i].len == len && memcmp(table[i].word, w, len) == 0) return &table[i];
+    }
+    return NULL;
 }
 
 static int slop_hl_startswith(const char* s, int slen, int pos, const char* prefix) {

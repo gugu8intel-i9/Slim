@@ -113,7 +113,7 @@ Files with unrecognized extensions are rendered in the default terminal color.
 ### Supported languages
 
 Slim recognizes and highlights **30+ language families** with a VS Code Dark+-inspired
-truecolor palette:
+256-color palette for broad terminal compatibility:
 
 | Token | Color | Example |
 |-------|-------|---------|
