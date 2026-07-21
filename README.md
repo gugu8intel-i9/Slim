@@ -112,18 +112,25 @@ Files with unrecognized extensions are rendered in the default terminal color.
 
 ### Supported languages
 
-Slim recognizes and highlights **30+ language families**:
+Slim recognizes and highlights **30+ language families** with a VS Code Dark+-inspired
+truecolor palette:
 
-- **C-like**: C, C++, Slop, Rust, Go, JavaScript, TypeScript, Java, PHP, Swift, Kotlin, C#
-- **Scripting**: Python, Shell, Ruby, Perl, Lua
-- **Web**: HTML, XML, CSS, JSON
-- **Data/config**: YAML, TOML, INI
-- **Systems**: SQL, Makefile, Dockerfile, Assembly
-- **Functional**: Lisp/Clojure/Scheme/Racket, Haskell, Erlang
-- **Docs**: Markdown
+| Token | Color | Example |
+|-------|-------|---------|
+| Keywords | blue | `def`, `if`, `return` |
+| Types | teal | `int`, `String`, `Vec` |
+| Functions | yellow | `printf(...)`, `hello(...)` |
+| Strings | orange | `"hello"` |
+| Comments | green | `// comment` |
+| Numbers | light green | `42`, `0xFF`, `3.14` |
+| Preprocessor | purple | `#include`, `#!/bin/bash` |
+| Operators | white | `+`, `=`, `->` |
+| Attributes | gold | `@decorator` |
 
-For every supported language Slim highlights keywords, types, strings, numbers,
-comments, and preprocessor directives where applicable.
+Supported languages include C, C++, Slop, Rust, Go, JavaScript, TypeScript, Java,
+Python, Shell, Ruby, PHP, Lua, Perl, SQL, Swift, Kotlin, C#, HTML, XML, CSS,
+JSON, YAML, TOML, INI, Makefile, Dockerfile, Lisp/Clojure, Haskell, Erlang,
+Assembly, and Markdown.
 
 ### Diagnostics
 
