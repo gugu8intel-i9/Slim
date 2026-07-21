@@ -43,12 +43,17 @@ if [ ! -f "slim.c" ]; then
     exit 1
 fi
 
-echo "[Slim] Compiling slim.c -> slim ..."
+if [ ! -f "slim_hl.c" ] || [ ! -f "slim_hl.h" ]; then
+    echo "Error: syntax highlighting source files slim_hl.c / slim_hl.h not found"
+    exit 1
+fi
+
+echo "[Slim] Compiling slim.c + slim_hl.c -> slim ..."
 CC="${CC:-$(command -v gcc || command -v clang || true)}"
 if [ -z "$CC" ]; then
     echo "Error: No C compiler found. Install gcc or clang."
     exit 1
 fi
-"$CC" -O3 -std=gnu11 -ffast-math -flto -I"$SLOP_INCLUDE" slim.c -o slim -lm
+"$CC" -O3 -std=gnu11 -ffast-math -flto -I"$SLOP_INCLUDE" slim_hl.c slim.c -o slim -lm
 
 echo "[Slim] Build complete: ./slim <file>"
